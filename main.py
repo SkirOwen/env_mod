@@ -15,6 +15,7 @@ from statsmodels.tools.eval_measures import aic, bic, aicc
 import seaborn as sns
 
 sns.set_theme()
+# this is to make the matplotlib looks the same as the seaborn one
 
 # A good place to start to see the conversion between Python and R
 # https://towardsdatascience.com/cheat-sheet-for-python-dataframe-r-dataframe-syntax-conversions-450f656b44ca
@@ -23,8 +24,8 @@ sns.set_theme()
 # DISCLAIMER: plotting things is really easy with the library `seaborn`, but doesn't provide a lot of information
 # about the error of the fitting.
 # The alternative is to do it manually, using sklearn and statsmodels
-# There is a weird quirk about the aic and bic, they are not the same as with R; it could from the fitting
-# algorithm under the hood. However, it still gives the same conclusion... so that's something
+# There is a weird quirk about the aic and bic, they are not the same as with R. It seems to come from the way R
+# counts the parameters of the model.
 
 # NOTE: in the function declaration, I sometimes indicate the type of the variables (like: x_name: str)
 # Python does NOT care about it, it simply for the user (and me) to know quickly what I can put it or not.
@@ -61,7 +62,35 @@ def poly_fit(
 				ci_level=0.05,
 				R_values: bool = True
 			) -> Tuple[np.array, np.array, np.array]:
-	""""""
+	"""
+	Function to fit a polynomial regression for different degree and measure the AIC, BIC, AICc.
+	Plot the fitting with CI, and saves it to `./plots`
+
+	Parameters
+	----------
+	x_name : str
+		Name of the x column in the pd.DataFrame
+	y_name : str
+		Name of the y column in the pd.DataFrame
+	df : DataFrame
+		Pandas DataFrame
+	n : int, optional
+		max degree of the polynomial fit, default is 3
+	ci_level : float in [0, 1], optional
+		confidence interval, 0.05 correspond to a CI at 95%, default is 0.05
+	R_values : bool, optional
+		get the same values for AIC, BIC, AICc as in R, default is True
+
+	Returns
+	-------
+	aic_v : np.array
+		numpy array of (1, n) with the values of the AIC for the n degrees
+	bic_v : np.array
+		numpy array of (1, n) with the values of the BIC for the n degrees
+	aicc_v : np.array
+		numpy array of (1, n) with the values of the AICc for the n degrees
+
+	"""
 
 	x = df.iloc[:, 1:2].values
 	y = df.iloc[:, 2].values
@@ -70,12 +99,16 @@ def poly_fit(
 	# df.x or df.V1 could work most of the time, but output a line vector
 	# you may wish to look into .loc as it uses the column name
 
-	# bic = [None for i in range(n)]
 	bic_v = np.zeros(n)
 	aic_v = np.zeros(n)
 	aicc_v = np.zeros(n)
+	# Creating array of zeros of size n using numpy, because it is faster then the python list for later
+	# The pythonic alternative would be:
+	# bic = [None for i in range(n)]
 
 	for i in range(1, n+1):
+		# python loop are up to n but doesn't include n, also by defaults starts at 0
+		# and list indexes start at 0
 		print("fitting poly degree", i)
 		poly_reg = PolynomialFeatures(degree=i)
 		x_poly = poly_reg.fit_transform(x)
@@ -88,17 +121,23 @@ def poly_fit(
 
 		plt.plot(df[x_name], y_pred["mean_ci_lower"], linestyle="--", color="orange")
 		plt.plot(df[x_name], y_pred["mean_ci_upper"], linestyle="--", color="orange")
-		plt.fill_between(df[x_name], y_pred["mean_ci_lower"], y_pred["mean_ci_upper"], alpha=.25, label=f"CI ({1-ci_level}%)")
+		plt.fill_between(df[x_name], y_pred["mean_ci_lower"], y_pred["mean_ci_upper"], alpha=.25,
+							label=f"CI ({(1-ci_level) * 100}%)")
+
 		plt.scatter(df[x_name], df[y_name], label="data", linewidth=1.5, facecolors="none", edgecolors="b")
+
 		plt.plot(df[x_name], y_pred["mean"], label="Regression Line")
+
 		plt.legend()
 
 		plt.xlabel(x_name)
 		plt.ylabel(y_name)
 		plt.title(f"Degree {i}")
+
 		plt.savefig(os.path.join("./plots", f"degree{i}.png"))
 		plt.show()
 
+		# computing the values by hand to make the same computation as in R, see next comment
 		llf = model.llf
 		nobs = len(model.fittedvalues)
 		df_modelwc = len(model.params) + 1      # need to add one to have the same result as R
@@ -116,7 +155,16 @@ def poly_fit(
 
 
 def plot_fit_criteria(name: str, values) -> None:
-	""""""
+	"""
+	Small function to plot the AIC, BIC, AICc
+
+	Parameters
+	----------
+	name : str,
+		name of the criterion to plot, for titles and axes
+	values : array,
+		array of the values to plot
+	"""
 	x = [i for i in range(1, len(values) + 1)]
 
 	plt.scatter(x, values, linewidth=1.5, facecolors="none", edgecolors="b")

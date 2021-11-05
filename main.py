@@ -61,7 +61,8 @@ def sns_predict(x_name: str, y_name: str, data: DataFrame, degree: float, ci: in
 def poly_fit(
 				x_name: str,
 				y_name: str,
-				df, n: int = 3,
+				df: DataFrame,
+				n: int = 3,
 				ci_level=0.05,
 				R_values: bool = True
 			) -> Tuple[np.array, np.array, np.array]:

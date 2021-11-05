@@ -12,3 +12,20 @@ and a folder `plots` for the plots
 - `statsmodels`
 - `sklearn`
 - `seaborn`
+
+# Installation
+## Anaconda
+
+With a terminal (or the anaconda prompt on Windows) open in the project directory, run:  
+
+```shell
+conda env create -f environment.yml
+```
+
+## Pip (vanilla Python)
+
+In a terminal open in the project directory, run:  
+
+```shell
+pip install -r requirements.txt
+```

@@ -34,7 +34,7 @@ sns.set_theme()
 # def foo(bar) -> int:
 
 
-def sns_predict(x_name: str, y_name: str, data: DataFrame, ci: int=95) -> None:
+def sns_predict(x_name: str, y_name: str, data: DataFrame, degree: float, ci: int=95) -> None:
 	"""
 	Implementation of the plotting with CI with seaborn.
 	It only does the plot (with the fitting under the hood)
@@ -47,11 +47,14 @@ def sns_predict(x_name: str, y_name: str, data: DataFrame, ci: int=95) -> None:
 		Name of the y column in the pd.DataFrame
 	data : DataFrame
 		Pandas DataFrame
+	degree : float
+		degree of the fit, float numbers work, even negative :)
 	ci : int in [0, 100], optional
 		Confidence interval
 	"""
 	# sns.scatterplot(x=df.V1.values, y=df.V2.values)
-	sns.regplot(x=x_name, y=y_name, data=data, ci=95, fit_reg=True)
+	sns.regplot(x=x_name, y=y_name, data=data, order=degree, ci=ci)
+	plt.savefig(os.path.join("./plots", f"seaborn.png"), dpi=400)
 	plt.show()
 
 
@@ -134,7 +137,7 @@ def poly_fit(
 		plt.ylabel(y_name)
 		plt.title(f"Degree {i}")
 
-		plt.savefig(os.path.join("./plots", f"degree{i}.png"))
+		plt.savefig(os.path.join("./plots", f"degree{i}.png"), dpi=400)
 		plt.show()
 
 		# computing the values by hand to make the same computation as in R, see next comment
@@ -174,7 +177,7 @@ def plot_fit_criteria(name: str, values) -> None:
 	plt.ylabel(name)
 	plt.title(name)
 
-	plt.savefig(os.path.join("./plots", f"{name}.png"))
+	plt.savefig(os.path.join("./plots", f"{name}.png"), dpi=400)
 	plt.show()
 
 
